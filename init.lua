@@ -35,7 +35,15 @@ require("lazy").setup({
   'stevearc/dressing.nvim',
   'nvim-lualine/lualine.nvim',
   'elkowar/yuck.vim',
+  'sindrets/diffview.nvim',
   'kyazdani42/nvim-tree.lua',
+  'nvim-tree/nvim-web-devicons',
+  {
+    'lewis6991/gitsigns.nvim',
+    config = function()
+        require('gitsigns').setup()
+    end,
+  },
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
@@ -49,6 +57,45 @@ require("lazy").setup({
       -- refer to the configuration section below
     },
   },
+  {
+    dir = "~/Repos/neoai.nvim",
+    dependencies = {
+        "MunifTanjim/nui.nvim",
+    },
+    cmd = {
+        "NeoAI",
+        "NeoAIOpen",
+        "NeoAIClose",
+        "NeoAIToggle",
+        "NeoAIContext",
+        "NeoAIContextOpen",
+        "NeoAIContextClose",
+        "NeoAIInject",
+        "NeoAIInjectCode",
+        "NeoAIInjectContext",
+        "NeoAIInjectContextCode",
+    },
+    keys = {
+        { "<leader>as", desc = "summarize text" },
+        { "<leader>ag", desc = "generate git message" },
+    },
+    config = function()
+        require("neoai").setup({
+          models = {
+            {
+              name = "openai",
+              model = "gpt-4o-mini",
+            }
+          },
+        })
+    end,
+  },
+  {
+    "David-Kunz/gen.nvim",
+    opts = {
+      model = "llama3.1",
+    }
+  }
 })
 
 -- Tree-sitter configuration
@@ -126,8 +173,19 @@ local function open_file_in_vsplit()
   })
 end
 
--- Make the function global
+-- Function to prompt for user input and execute NeoAIInjectContextCode
+local function inject_context_code()
+  local prompt = vim.fn.input("Enter prompt: ")  -- Prompt for user input
+  if prompt ~= "" then
+    vim.cmd("NeoAIInjectContextCode " .. vim.fn.escape(prompt, ' '))  -- Call the command
+  else
+    print("Prompt cannot be empty")
+  end
+end
+
+-- Make the functions global
 _G.open_file_in_vsplit = open_file_in_vsplit
+_G.inject_context_code = inject_context_code
 
 -- Key mapping for the custom open file in vertical split
 vim.api.nvim_set_keymap('n', '<leader>fv', '<cmd>lua open_file_in_vsplit()<CR>', { noremap = true, silent = true })
@@ -169,4 +227,12 @@ vim.api.nvim_set_keymap('n', '<leader>w=', '<C-w>=', { noremap = true, silent = 
 
 -- Key mapping to close current window
 vim.api.nvim_set_keymap('n', '<leader>wq', '<C-w>q', { noremap = true, silent = true })
+
+-- Key mappings for NeoAI
+vim.api.nvim_set_keymap('n', '<leader>ai', '<cmd>NeoAI<CR>', { noremap = true, silent = true, desc = "Open NeoAI" })
+vim.api.nvim_set_keymap('n', '<leader>aic', '<cmd>NeoAIContext<CR>', { noremap = true, silent = true, desc = "Open NeoAI Context" })
+vim.api.nvim_set_keymap('n', '<leader>aig', '<cmd>lua inject_context_code()<CR>', { noremap = true, silent = true, desc = "Inject Context Code with NeoAI" })
+
+vim.api.nvim_set_keymap('n', '<leader>dvo', '<cmd>DiffviewOpen<CR>', { noremap=true, silent=true, desc="OpenDiffview" })
+vim.api.nvim_set_keymap('n', '<leader>dvc',' <cmd>DiffviewClose<CR>',{ noremap=true, silent=true, desc="CloseDiffview" })
 
